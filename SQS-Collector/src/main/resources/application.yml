@@ -1,0 +1,36 @@
+#  https://cloud.spring.io/spring-cloud-aws/reference/html/appendix.html
+cloud:
+  aws:
+    credentials:
+      access-key: access_key_aws_local
+      secret-key: secret_key_aws_local
+      instance-profile: false
+      profile-name: default
+    region:
+      static: us-east-1
+      auto: false
+    stack:
+      auto: false
+
+spring:
+  profiles:
+    active:
+      - local
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+  data:
+    mongodb:
+      uri: mongodb://admin:qwe123@localhost:27017/aws-messages?authSource=admin
+
+sensedia:
+  localstack:
+    url: http://localhost:4566
+    sqs-queue-name: onexlab
+  kafka-topic: topic
+
+# https://stackoverflow.com/questions/43674465/error-while-connecting-to-aws-sqs-from-spring-boot
+#spring:
+#  main:
+#    allow-bean-definition-overriding=true:

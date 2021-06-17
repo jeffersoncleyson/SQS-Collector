@@ -1,0 +1,78 @@
+version: '3.0'
+
+
+networks:
+    aws-serv:
+      driver: bridge
+
+services:
+
+#####################################################
+################## SQS AND SNS    ###################
+#####################################################
+  localstack:
+    image: localstack/localstack:latest
+
+    env_file:
+      ./ENV_FILES/localstack.env
+    ports:
+      - 4566:4566
+    volumes:
+      - ./volumes/localstack/temp:/tmp/localstack
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./localstack/init.sh:/docker-entrypoint-initaws.d/init.sh
+    networks: 
+      - aws-serv
+
+#####################################################
+####### Zookeeper, Kafka And KafDrop   ##############
+#####################################################
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    networks: 
+      - kafka-serv
+    env_file:
+      ./ENV_FILES/zookeeper.env
+    networks: 
+      - aws-serv
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    networks: 
+      - kafka-serv
+    depends_on:
+      - zookeeper
+    ports:
+      - 9092:9092
+    env_file:
+      ./ENV_FILES/kafka.env
+    networks: 
+      - aws-serv
+
+  kafdrop:
+    image: obsidiandynamics/kafdrop:latest
+    networks: 
+      - kafka-serv
+    depends_on:
+      - kafka
+    ports:
+      - 19000:9000
+    env_file:
+      ./ENV_FILES/kafdrop.env
+    networks: 
+      - aws-serv
+
+####################################
+##### MONGODB  #####################
+####################################
+  mongo-primary:
+    image: mongo:latest
+    volumes:
+      - ./volumes/mongodb/data/mongo-data-0:/data/db
+      - ./volumes/mongodb/data/mongo-config-0:/data/configdb
+    env_file:
+      ./ENV_FILES/mongod.env
+    ports:
+      - 27017:27017
+    networks:
+      - aws-serv
